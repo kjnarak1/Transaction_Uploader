@@ -1,6 +1,8 @@
-﻿namespace Transaction_Uploader.Interfaces
+﻿using Transaction_Uploader.Models;
+
+namespace Transaction_Uploader.Interfaces
 {
-    public class IFileProcessor
+    public interface IFileProcessor
     {
     }
 }

@@ -9,13 +9,8 @@ namespace Transaction_Uploader.Controllers
     {
         public async Task<IActionResult> Transaction()
         {
-            ViewModel result = new ViewModel();
-            List<Transaction> transactions = new List<Transaction>();
             List<Currency> currency = await GetCurrencyCode.LoadCurrenciesAsync("Common-Currency.json");
-
-            result.Transactions = transactions;
-            result.Currencies = currency;
-            return View(result);
+            return View(currency);
         }
     }
 }
