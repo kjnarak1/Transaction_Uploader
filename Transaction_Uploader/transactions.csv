@@ -1,0 +1,3 @@
+﻿Transaction Identificator,Amount,Currency Code,Transaction Date,Status
+Invoice0000001,1000.00,USD,20/02/2019 11:33:00,Approved
+Invoice0000002,300.00,USD,21/02/2019 02:04:00,Failed
