@@ -1,0 +1,58 @@
+﻿@using Transaction_Uploader.Models
+@{
+    ViewData["Title"] = "Transaction";
+    Layout = "_Layout";
+}
+
+@model List<Currency>
+
+<h1>Transaction</h1>
+<div class="row">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <label for="currency">Currency</label>
+        <select class="form-control" id="currency">
+            <option value="">All</option>
+            @foreach (var currency in Model)
+            {
+                <!option value="@currency.cc">@currency.DisplayCurrencyInfo()</!option>
+            }
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <label for="status">Currency</label>
+        <select class="form-control" id="status">
+            <option value="">All</option>
+            <option value="A">A</option>
+            <option value="R">R</option>
+            <option value="D">D</option>
+        </select>
+    </div>
+    <div class="col-lg-6 col-md-12 col-sm-12">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" class="form-control" />
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" class="form-control" />
+            </div>
+        </div>
+    </div>
+    <div class="btn btn-primary" id="searchButton">Search</div>
+</div>
+<div class="display hidden">
+    <table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Payment</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <div class="pagination">
+    </div>
+</div>

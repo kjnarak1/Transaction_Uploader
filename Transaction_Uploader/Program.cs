@@ -1,6 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using Transaction_Uploader.Data;
+using Transaction_Uploader.Interfaces;
+using Transaction_Uploader.Repositories;
+using Transaction_Uploader.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<TransactionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddTransient<ITransaction, TransactionRepository>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -22,6 +30,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Transaction}/{action=Transaction}/{id?}");
 
 app.Run();
