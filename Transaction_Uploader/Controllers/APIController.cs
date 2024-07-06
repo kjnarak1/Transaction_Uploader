@@ -2,7 +2,6 @@
 using Transaction_Uploader.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Transaction_Uploader.DTO;
-using Transaction_Uploader.Services;
 
 namespace Transaction_Uploader.Controllers
 {

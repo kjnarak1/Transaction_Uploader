@@ -1,5 +1,4 @@
 ﻿using Transaction_Uploader.DTO;
-using Transaction_Uploader.Models;
 
 namespace Transaction_Uploader.Interfaces
 {

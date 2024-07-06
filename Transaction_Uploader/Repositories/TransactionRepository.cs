@@ -2,7 +2,6 @@
 using Transaction_Uploader.Data;
 using Transaction_Uploader.DTO;
 using Transaction_Uploader.Interfaces;
-using Transaction_Uploader.Models;
 
 namespace Transaction_Uploader.Repositories
 {
@@ -31,7 +30,8 @@ namespace Transaction_Uploader.Repositories
 
             if (end_date.HasValue)
             {
-                query = query.Where(t => t.TransactionDate <= end_date.Value);
+                var adjustedEndDate = end_date.Value.Date.AddDays(1).AddSeconds(-1);
+                query = query.Where(t => t.TransactionDate <= adjustedEndDate);
             }
 
             if (!string.IsNullOrEmpty(status))
