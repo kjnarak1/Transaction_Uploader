@@ -12,10 +12,12 @@ namespace Transaction_Uploader.Controllers
     {
         private readonly ITransaction _transaction;
         private readonly IMemoryCache _cache;
-        public APIController(ITransaction itransaction, IMemoryCache cache)
+        private readonly IFileProcessor _fileProcessor;
+        public APIController(ITransaction itransaction, IMemoryCache cache/*, IFileProcessor fileProcessor*/)
         {
             _transaction = itransaction;
             _cache = cache;
+            //_fileProcessor = fileProcessor; 
         }
 
         [HttpGet]
@@ -36,6 +38,19 @@ namespace Transaction_Uploader.Controllers
                 _cache.Set(cacheKey, transactions, cacheEntryOptions);
             }
             return Ok(transactions);
+        }
+
+        [HttpPost]
+        [Route("Upload")]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+            var result = await _fileProcessor.ProcessFileAsync(file);
+            if (!string.IsNullOrEmpty(result.ErrorMessage))
+            {
+                return BadRequest(result);
+            }
+
+            return Ok();
         }
     }
 }
