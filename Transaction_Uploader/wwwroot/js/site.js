@@ -132,10 +132,3 @@ function load_page(page) {
         table.appendChild(tr);
     }
 }
-function generate_table(transaction_list) {
-    console.log(transaction_list);
-    /*
-        <tr>
-            <td class="status"><span class="@(@transaction.Status == " A" ? "approve" : @transaction.Status == "R" ? "reject" : "done")">@transaction.Status</span></td>
-                </tr >*/
-}
