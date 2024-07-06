@@ -93,8 +93,8 @@ function mapStatus(transaction) {
             default:
                 newStatus = transaction.status;
         }
-        return newStatus;
     }
+    return newStatus;
 }
 
 function load_page(page) {
@@ -159,7 +159,7 @@ function openModal(modalId) {
 
 document.getElementById('uploadForm').addEventListener('submit', async function (event) {
     event.preventDefault();
-
+    document.getElementById("loading").classList.remove("hidden");
     const fileInput = document.getElementById('fileInput');
     if (fileInput.files.length === 0) {
         alert('Please select a file to upload.');
@@ -197,5 +197,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
         const responseMessage = document.getElementById('responseMessage');
         responseMessage.textContent = error;
         responseMessage.style.color = 'red';
+    } finally {
+        document.getElementById("loading").classList.add("hidden");
     }
 });

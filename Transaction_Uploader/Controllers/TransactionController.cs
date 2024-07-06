@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Transaction_Uploader.Models;
-using Newtonsoft.Json;
 using Transaction_Uploader.Services;
 
 namespace Transaction_Uploader.Controllers
