@@ -4,7 +4,7 @@
     Layout = "_Layout";
 }
 
-@model ViewModel
+@model List<Currency>
 
 <h1>Transaction</h1>
 <div class="row">
@@ -12,14 +12,14 @@
         <label for="currency">Currency</label>
         <select class="form-control" id="currency">
             <option value="">All</option>
-            @foreach (var currency in Model.Currencies)
+            @foreach (var currency in Model)
             {
                 <!option value="@currency.cc">@currency.DisplayCurrencyInfo()</!option>
             }
         </select>
     </div>
     <div class="col-lg-3 col-md-6 col-sm-12">
-        <label for="currency">Currency</label>
+        <label for="status">Currency</label>
         <select class="form-control" id="status">
             <option value="">All</option>
             <option value="A">A</option>
@@ -39,9 +39,10 @@
             </div>
         </div>
     </div>
+    <div class="btn btn-primary" id="searchButton">Search</div>
 </div>
-<div class="display">
-    <table style="display:none">
+<div class="display hidden">
+    <table>
         <thead>
             <tr>
                 <th>Id</th>
@@ -50,14 +51,8 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var transaction in Model.Transactions)
-            {
-                <tr>
-                    <td>@transaction.TransactionId</td>
-                    <td>@transaction.Amount @transaction.CurrencyCode</td>
-                    <td class="status"><span class="@(@transaction.Status == "A" ? "approve" : @transaction.Status == "R" ? "reject" : "done")">@transaction.Status</span></td>
-                </tr>
-            }
         </tbody>
     </table>
+    <div class="pagination">
+    </div>
 </div>
