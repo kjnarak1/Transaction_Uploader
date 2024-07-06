@@ -2,7 +2,9 @@
 using System.Xml.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Transaction_Uploader.Data;
 using Transaction_Uploader.Interfaces;
 using Transaction_Uploader.Models;
 
@@ -12,8 +14,10 @@ namespace Transaction_Uploader.Services
     {
         private static readonly HashSet<string> ValidStatusesCSV = new HashSet<string> { "Approved", "Failed", "Finished" };
         private static readonly HashSet<string> ValidStatusesXML = new HashSet<string> { "Approved", "Rejected", "Done" };
+        private static readonly Dictionary<string, string> dicStatuses = new Dictionary<string, string>() { { "Approved", "A" }, { "Failed", "R" }, { "Rejected", "R" }, { "Finished", "D" }, { "Done", "D" } };
         private static HashSet<string> ValidStatuses;
         private static HashSet<string> ValidCurrencyCodes;
+        private readonly TransactionContext _context;
 
         public static async Task<HashSet<string>> LoadCurrenciesAsync(string filePath)
         {
@@ -30,8 +34,9 @@ namespace Transaction_Uploader.Services
             }
         }
 
-        public FileProcessor()
+        public FileProcessor(TransactionContext context)
         {
+            _context = context;
             LoadCurrencyCodesAsync("Common-Currency.json").GetAwaiter().GetResult();
         }
 
@@ -87,36 +92,47 @@ namespace Transaction_Uploader.Services
             using (var reader = new StreamReader(stream))
             using (var csv = new CsvReader(reader, config))
             {
-                var records = new List<Transaction>();
-                csv.Read();
-                csv.ReadHeader();
-                while (await csv.ReadAsync())
+                var transactions = new List<Transaction>();
+                try
                 {
-                    try
+                    csv.Read();
+                    csv.ReadHeader();
+                    while (await csv.ReadAsync())
                     {
-                        var tt = csv.GetField("Transaction Date");
-                        DateTime date = DateTime.ParseExact(csv.GetField("Transaction Date"), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                        try
+                        {
+                            var tt = csv.GetField("Transaction Date");
+                            DateTime date = DateTime.ParseExact(csv.GetField("Transaction Date"), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                        }
+                        catch (Exception ex)
+                        {
+                            return new ValidationResult { ErrorMessage = "Invalid Transaction Date." };
+                        };
+                        var record = new Transaction
+                        {
+                            TransactionId = csv.GetField("Transaction Identificator"),
+                            Amount = csv.GetField<decimal>("Amount"),
+                            CurrencyCode = csv.GetField("Currency Code"),
+                            TransactionDate = DateTime.ParseExact(csv.GetField("Transaction Date"), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
+                            Status = csv.GetField("Status")
+                        };
+                        var validationError = ValidateTransaction(record);
+                        if (!string.IsNullOrEmpty(validationError))
+                        {
+                            return new ValidationResult { ErrorMessage = validationError };
+                        }
+                        record.Status = dicStatuses[record.Status];
+                        transactions.Add(record);
                     }
-                    catch (Exception ex)
-                    {
-                        return new ValidationResult { ErrorMessage = "Invalid Transaction Date." };
-                    };
-                    var record = new Transaction
-                    {
-                        TransactionId = csv.GetField("Transaction Identificator"),
-                        Amount = csv.GetField<decimal>("Amount"),
-                        CurrencyCode = csv.GetField("Currency Code"),
-                        TransactionDate = DateTime.ParseExact(csv.GetField("Transaction Date"), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
-                        Status = csv.GetField("Status")
-                    };
-
-
-                    var validationError = ValidateTransaction(record);
-                    if (!string.IsNullOrEmpty(validationError))
-                    {
-                        return new ValidationResult { ErrorMessage = validationError };
-                    }
-                    records.Add(record);
+                    await SaveTransactionsToDatabaseAsync(transactions);
+                }
+                catch (CsvHelperException ex)
+                {
+                    return new ValidationResult { ErrorMessage = $"CSV parsing error: {ex.Message}" };
+                }
+                catch (Exception ex)
+                {
+                    return new ValidationResult { ErrorMessage = $"An error occurred: {ex.Message}" };
                 }
             }
 
@@ -125,6 +141,8 @@ namespace Transaction_Uploader.Services
 
         private async Task<ValidationResult> ProcessXmlFileAsync(Stream stream)
         {
+            
+
             return new ValidationResult { IsValid = true, ErrorMessage = "XML file processed successfully." };
         }
 
@@ -156,6 +174,29 @@ namespace Transaction_Uploader.Services
             }
 
             return null;
+        }
+
+        private async Task SaveTransactionsToDatabaseAsync(IEnumerable<Transaction> transactions)
+        {
+            foreach (var transaction in transactions)
+            {
+                var existingTransaction = await _context.Transaction
+                    .FirstOrDefaultAsync(t => t.TransactionId == transaction.TransactionId);
+
+                if (existingTransaction != null)
+                {
+                    existingTransaction.Amount = transaction.Amount;
+                    existingTransaction.CurrencyCode = transaction.CurrencyCode;
+                    existingTransaction.TransactionDate = transaction.TransactionDate;
+                    existingTransaction.Status = transaction.Status;
+                }
+                else
+                {
+                    await _context.Transaction.AddAsync(transaction);
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
