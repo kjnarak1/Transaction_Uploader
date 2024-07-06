@@ -132,3 +132,70 @@ function load_page(page) {
         table.appendChild(tr);
     }
 }
+
+function openModal(modalId) {
+    var currentDate = new Date();
+    var formattedDate = currentDate.toISOString().slice(0, 10);
+    var modal = document.getElementById(modalId);
+    var span = modal.querySelector(".close");
+    modal.style.display = "block";
+    span.onclick = function () {
+        modal.style.animation = "fadeOut 0.3s ease forwards";
+        setTimeout(function () {
+            modal.style.display = "none";
+            modal.style.animation = "";
+        }, 300);
+    }
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.animation = "fadeOut 0.3s ease forwards";
+            setTimeout(function () {
+                modal.style.display = "none";
+                modal.style.animation = "";
+            }, 300);
+        }
+    }
+}
+
+document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput.files.length === 0) {
+        alert('Please select a file to upload.');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const allowedExtensions = ['csv', 'xml'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedExtensions.includes(fileExtension)) {
+        alert('Please upload a CSV or XML file.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/Upload', {
+            method: 'POST',
+            body: formData
+        });
+        console.log(response);
+        const result = await response.json();
+        const responseMessage = document.getElementById('responseMessage');
+        if (response.ok) {
+            responseMessage.textContent = `Success`;
+            responseMessage.style.color = 'green';
+        } else {
+            responseMessage.textContent = `Error: ${result.message}`;
+            responseMessage.style.color = 'red';
+        }
+    } catch (error) {
+        const responseMessage = document.getElementById('responseMessage');
+        responseMessage.textContent = error;
+        responseMessage.style.color = 'red';
+    }
+});

@@ -3,12 +3,17 @@ using Transaction_Uploader.Data;
 using Transaction_Uploader.Interfaces;
 using Transaction_Uploader.Repositories;
 using Transaction_Uploader.Services;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<TransactionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddTransient<ITransaction, TransactionRepository>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<CacheKeyManager>();
+builder.Services.AddTransient<IFileProcessor, FileProcessor>();
+builder.Services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<TransactionValidator>());
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

@@ -39,7 +39,8 @@
             </div>
         </div>
     </div>
-    <div class="btn btn-primary" id="searchButton">Search</div>
+    <div class="btn btn-primary" id="searchButton" style="max-width:150px;margin: 10px;">Search</div>
+    <span class="btn btn-primary" style="max-width:150px;margin: 10px;" data-target="uploadFileModal" onclick="openModal(this.getAttribute('data-target'))">Upload File</span>
 </div>
 <div class="display hidden">
     <table>
@@ -54,5 +55,15 @@
         </tbody>
     </table>
     <div class="pagination">
+    </div>
+</div>
+<div id="uploadFileModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <form id="uploadForm">
+            <p id="responseMessage"></p>
+            <input type="file" id="fileInput" name="file" accept=".csv, .xml" required />
+            <button type="submit" class="btn btn-danger" style="float:right;margin-top:10px;">Upload</button>
+        </form>
     </div>
 </div>
