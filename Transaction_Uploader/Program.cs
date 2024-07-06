@@ -12,6 +12,7 @@ builder.Services.AddDbContext<TransactionContext>(options => options.UseSqlServe
 builder.Services.AddTransient<ITransaction, TransactionRepository>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<CacheKeyManager>();
+builder.Services.AddTransient<IFileProcessor, FileProcessor>();
 builder.Services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<TransactionValidator>());
 builder.Services.AddControllersWithViews();
 
