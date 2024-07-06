@@ -18,6 +18,7 @@ namespace Transaction_Uploader.Services
         private static HashSet<string> ValidStatuses;
         private static HashSet<string> ValidCurrencyCodes;
         private readonly TransactionContext _context;
+        private readonly ILogger<FileProcessor> _logger;
         private const long MaxFileSize = 1 * 1024 * 1024;
 
         public static async Task<HashSet<string>> LoadCurrenciesAsync(string filePath)
@@ -35,9 +36,10 @@ namespace Transaction_Uploader.Services
             }
         }
 
-        public FileProcessor(TransactionContext context)
+        public FileProcessor(TransactionContext context, ILogger<FileProcessor> logger)
         {
             _context = context;
+            _logger = logger;
             LoadCurrencyCodesAsync("Common-Currency.json").GetAwaiter().GetResult();
         }
 
@@ -50,16 +52,19 @@ namespace Transaction_Uploader.Services
         {
             if (file == null || file.Length == 0)
             {
+                _logger.LogError("Invalid file.");
                 return new ValidationResult { ErrorMessage = "Invalid file." };
             }
             if (file.Length > MaxFileSize)
             {
+                _logger.LogError("File size exceeds the maximum limit of 1MB.");
                 return new ValidationResult { ErrorMessage = "File size exceeds the maximum limit of 1MB." };
             }
 
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
             if (fileExtension != ".csv" && fileExtension != ".xml")
             {
+                _logger.LogError("Unknown format.");
                 return new ValidationResult { ErrorMessage = "Unknown format" };
             }
 
@@ -80,9 +85,11 @@ namespace Transaction_Uploader.Services
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "File processing failed.");
                     return new ValidationResult { ErrorMessage = $"File processing failed: {ex.Message}" };
                 }
             }
+            _logger.LogError("Unknown error occurred during file processing.");
             return new ValidationResult { ErrorMessage = "Unknown error occurred during file processing." };
         }
 
@@ -98,12 +105,14 @@ namespace Transaction_Uploader.Services
             using (var csv = new CsvReader(reader, config))
             {
                 var transactions = new List<Transaction>();
+                var rowIndex = 0;
                 try
                 {
                     csv.Read();
                     csv.ReadHeader();
                     while (await csv.ReadAsync())
                     {
+                        rowIndex++;
                         try
                         {
                             var tt = csv.GetField("Transaction Date");
@@ -111,6 +120,7 @@ namespace Transaction_Uploader.Services
                         }
                         catch (Exception ex)
                         {
+                            _logger.LogError("Invalid Transaction Date.");
                             return new ValidationResult { ErrorMessage = "Invalid Transaction Date." };
                         };
                         var record = new Transaction
@@ -124,6 +134,7 @@ namespace Transaction_Uploader.Services
                         var validationError = ValidateTransaction(record);
                         if (!string.IsNullOrEmpty(validationError))
                         {
+                            _logger.LogError($"Row {rowIndex}: Validation error - {validationError}");
                             return new ValidationResult { ErrorMessage = validationError };
                         }
                         record.Status = dicStatuses[record.Status];
@@ -133,10 +144,12 @@ namespace Transaction_Uploader.Services
                 }
                 catch (CsvHelperException ex)
                 {
+                    _logger.LogError(ex, $"Row {rowIndex}: CSV parsing error.");
                     return new ValidationResult { ErrorMessage = $"CSV parsing error: {ex.Message}" };
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, $"Row {rowIndex}: An error occurred.");
                     return new ValidationResult { ErrorMessage = $"An error occurred: {ex.Message}" };
                 }
             }
@@ -152,13 +165,13 @@ namespace Transaction_Uploader.Services
                 var xmlString = await reader.ReadToEndAsync();
                 xmlDoc = XDocument.Parse(xmlString);
             }
-
+            var transactions = new List<Transaction>();
+            var rowIndex = 0;
             try
             {
-
-                var transactions = new List<Transaction>();
                 foreach (var element in xmlDoc.Descendants("Transaction"))
                 {
+                    rowIndex++;
                     var record = new Transaction
                     {
                         TransactionId = element.Attribute("id")?.Value,
@@ -171,6 +184,7 @@ namespace Transaction_Uploader.Services
                     var validationError = ValidateTransaction(record);
                     if (!string.IsNullOrEmpty(validationError))
                     {
+                        _logger.LogError($"Row {rowIndex}: Validation error - {validationError}");
                         return new ValidationResult { ErrorMessage = validationError };
                     }
                     record.Status = dicStatuses[record.Status];
@@ -180,6 +194,7 @@ namespace Transaction_Uploader.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Row {rowIndex}: An error occurred while saving transactions.");
                 return new ValidationResult { ErrorMessage = $"An error occurred: {ex.Message}" };
             }
 
