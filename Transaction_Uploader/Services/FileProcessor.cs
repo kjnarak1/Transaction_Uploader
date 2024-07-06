@@ -18,6 +18,7 @@ namespace Transaction_Uploader.Services
         private static HashSet<string> ValidStatuses;
         private static HashSet<string> ValidCurrencyCodes;
         private readonly TransactionContext _context;
+        private const long MaxFileSize = 1 * 1024 * 1024;
 
         public static async Task<HashSet<string>> LoadCurrenciesAsync(string filePath)
         {
@@ -50,6 +51,10 @@ namespace Transaction_Uploader.Services
             if (file == null || file.Length == 0)
             {
                 return new ValidationResult { ErrorMessage = "Invalid file." };
+            }
+            if (file.Length > MaxFileSize)
+            {
+                return new ValidationResult { ErrorMessage = "File size exceeds the maximum limit of 1MB." };
             }
 
             var fileExtension = Path.GetExtension(file.FileName).ToLower();
