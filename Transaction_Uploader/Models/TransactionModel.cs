@@ -8,4 +8,8 @@
         public DateTime TransactionDate { get; set; }
         public string Status { get; set; }
     }
+    public class Currency
+    {
+        public string CurrencyCode { get; set; }
+    }
 }

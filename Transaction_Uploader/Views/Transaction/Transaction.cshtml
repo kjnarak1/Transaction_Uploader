@@ -1,0 +1,37 @@
+﻿@using Transaction_Uploader.Models
+@{
+    ViewData["Title"] = "Transaction";
+    Layout = "_Layout";
+}
+
+@model ViewModel
+
+<h1>Transaction</h1>
+<div class="search">
+    <select>
+
+    </select>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Amount</th>
+            <th>Currency Code</th>
+            <th>Transaction Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model.Transactions)
+        {
+            <tr>
+                <td>@transaction.TransactionId</td>
+                <td>@transaction.Amount</td>
+                <td>@transaction.CurrencyCode</td>
+                <td>@transaction.TransactionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td>@transaction.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
