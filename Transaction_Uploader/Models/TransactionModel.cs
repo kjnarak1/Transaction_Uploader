@@ -10,6 +10,12 @@
     }
     public class Currency
     {
-        public string CurrencyCode { get; set; }
+        public string cc { get; set; }
+        public string symbol { get; set; }
+        public string name { get; set; }
+        public string DisplayCurrencyInfo()
+        {
+            return $"{cc} : {name}({symbol})";
+        }
     }
 }

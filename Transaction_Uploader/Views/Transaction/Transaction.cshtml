@@ -7,31 +7,57 @@
 @model ViewModel
 
 <h1>Transaction</h1>
-<div class="search">
-    <select>
-
-    </select>
+<div class="row">
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <label for="currency">Currency</label>
+        <select class="form-control" id="currency">
+            <option value="">All</option>
+            @foreach (var currency in Model.Currencies)
+            {
+                <!option value="@currency.cc">@currency.DisplayCurrencyInfo()</!option>
+            }
+        </select>
+    </div>
+    <div class="col-lg-3 col-md-6 col-sm-12">
+        <label for="currency">Currency</label>
+        <select class="form-control" id="status">
+            <option value="">All</option>
+            <option value="A">A</option>
+            <option value="R">R</option>
+            <option value="D">D</option>
+        </select>
+    </div>
+    <div class="col-lg-6 col-md-12 col-sm-12">
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" class="form-control" />
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" class="form-control" />
+            </div>
+        </div>
+    </div>
 </div>
-<table>
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Amount</th>
-            <th>Currency Code</th>
-            <th>Transaction Date</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var transaction in Model.Transactions)
-        {
+<div class="display">
+    <table style="display:none">
+        <thead>
             <tr>
-                <td>@transaction.TransactionId</td>
-                <td>@transaction.Amount</td>
-                <td>@transaction.CurrencyCode</td>
-                <td>@transaction.TransactionDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                <td>@transaction.Status</td>
+                <th>Id</th>
+                <th>Payment</th>
+                <th>Status</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var transaction in Model.Transactions)
+            {
+                <tr>
+                    <td>@transaction.TransactionId</td>
+                    <td>@transaction.Amount @transaction.CurrencyCode</td>
+                    <td class="status"><span class="@(@transaction.Status == "A" ? "approve" : @transaction.Status == "R" ? "reject" : "done")">@transaction.Status</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
