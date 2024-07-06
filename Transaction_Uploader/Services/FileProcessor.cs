@@ -141,7 +141,42 @@ namespace Transaction_Uploader.Services
 
         private async Task<ValidationResult> ProcessXmlFileAsync(Stream stream)
         {
-            
+            XDocument xmlDoc;
+            using (var reader = new StreamReader(stream))
+            {
+                var xmlString = await reader.ReadToEndAsync();
+                xmlDoc = XDocument.Parse(xmlString);
+            }
+
+            try
+            {
+
+                var transactions = new List<Transaction>();
+                foreach (var element in xmlDoc.Descendants("Transaction"))
+                {
+                    var record = new Transaction
+                    {
+                        TransactionId = element.Attribute("id")?.Value,
+                        Amount = decimal.Parse(element.Element("PaymentDetails")?.Element("Amount")?.Value),
+                        CurrencyCode = element.Element("PaymentDetails")?.Element("CurrencyCode")?.Value,
+                        TransactionDate = DateTime.Parse(element.Element("TransactionDate")?.Value, null, DateTimeStyles.RoundtripKind),
+                        Status = element.Element("Status")?.Value
+                    };
+
+                    var validationError = ValidateTransaction(record);
+                    if (!string.IsNullOrEmpty(validationError))
+                    {
+                        return new ValidationResult { ErrorMessage = validationError };
+                    }
+                    record.Status = dicStatuses[record.Status];
+                    transactions.Add(record);
+                }
+                await SaveTransactionsToDatabaseAsync(transactions);
+            }
+            catch (Exception ex)
+            {
+                return new ValidationResult { ErrorMessage = $"An error occurred: {ex.Message}" };
+            }
 
             return new ValidationResult { IsValid = true, ErrorMessage = "XML file processed successfully." };
         }
