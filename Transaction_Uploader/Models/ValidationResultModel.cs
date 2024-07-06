@@ -2,7 +2,7 @@
 {
     public class ValidationResult
     {
-        public string Record { get; set; }
+        public bool IsValid { get; set; } = false;
         public string ErrorMessage { get; set; }
     }
 }

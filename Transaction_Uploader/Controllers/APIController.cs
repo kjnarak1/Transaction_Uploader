@@ -19,7 +19,7 @@ namespace Transaction_Uploader.Controllers
             _transaction = itransaction;
             _cache = cache;
             _cacheKeyManager = cacheKeyManager;
-            _fileProcessor = fileProcessor; 
+            _fileProcessor = fileProcessor;
         }
 
         [HttpGet]
@@ -48,16 +48,16 @@ namespace Transaction_Uploader.Controllers
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
             var result = await _fileProcessor.ProcessFileAsync(file);
-            if (!string.IsNullOrEmpty(result.ErrorMessage))
+            if (!result.IsValid)
             {
-                return BadRequest(result);
+                return BadRequest(new { message = result.ErrorMessage });
             }
             foreach (var key in _cacheKeyManager.GetAllKeys())
             {
                 _cache.Remove(key);
             }
             _cacheKeyManager.ClearAllKeys();
-            return Ok();
+            return Ok(new {message = "success."});
         }
     }
 }
