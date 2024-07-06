@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TransactionContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddTransient<ITransaction, TransactionRepository>();
 builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<CacheKeyManager>();
 builder.Services.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<TransactionValidator>());
 builder.Services.AddControllersWithViews();
 

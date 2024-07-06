@@ -13,11 +13,13 @@ namespace Transaction_Uploader.Controllers
         private readonly ITransaction _transaction;
         private readonly IMemoryCache _cache;
         private readonly IFileProcessor _fileProcessor;
-        public APIController(ITransaction itransaction, IMemoryCache cache/*, IFileProcessor fileProcessor*/)
+        private readonly CacheKeyManager _cacheKeyManager;
+        public APIController(ITransaction itransaction, IMemoryCache cache, CacheKeyManager cacheKeyManager, IFileProcessor fileProcessor)
         {
             _transaction = itransaction;
             _cache = cache;
-            //_fileProcessor = fileProcessor; 
+            _cacheKeyManager = cacheKeyManager;
+            _fileProcessor = fileProcessor; 
         }
 
         [HttpGet]
@@ -36,6 +38,7 @@ namespace Transaction_Uploader.Controllers
                         .SetSlidingExpiration(TimeSpan.FromMinutes(5));
 
                 _cache.Set(cacheKey, transactions, cacheEntryOptions);
+                _cacheKeyManager.AddKey(cacheKey);
             }
             return Ok(transactions);
         }
@@ -49,7 +52,11 @@ namespace Transaction_Uploader.Controllers
             {
                 return BadRequest(result);
             }
-
+            foreach (var key in _cacheKeyManager.GetAllKeys())
+            {
+                _cache.Remove(key);
+            }
+            _cacheKeyManager.ClearAllKeys();
             return Ok();
         }
     }
